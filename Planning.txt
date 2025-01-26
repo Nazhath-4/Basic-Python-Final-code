@@ -1,0 +1,8 @@
+1. I wil take data from teasers ,so will use input
+2. Then make lists what should include here likely students name ,Subjects ,Marks ,and Grade
+3.To get grade I'll use if command and lastly else to print fail
+4. If I complete whole program ,next need to save them from a text files so that it is usable later
+5.students name ,subjects ,marks should take in text files
+6. Creating manu for user , if you want to input press 1 likely setting manu this .
+
+
