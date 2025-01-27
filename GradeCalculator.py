@@ -1,67 +1,99 @@
-# Creating Manu
-f = open('base.txt', 'a+')
-read_base = open('base.txt', 'r')
-backno ='No'
-backyes ='yes'
-interface = True
-
-
-def user_input(name):
-   if  menu == 1:
-        f.write(name + '\n')
-
-while interface:
-    print('1. Add a name to the base \n2.Delete a name from the base\n3.Get name from the base \n4.Edit a name \n5.Exit')
-    menu = int(input('input an option : '))
-    if menu ==1:
-        user_input(name=input('type a name :'))
-        name_added()
-    elif menu == 2:
-        print('\nOption 2 executed')
-    elif menu == 3:
-        print('\nOption 3 executed')
-    elif menu == 4:
-        print('\nOption 4 executed')
-    elif menu > 4:
-        print('program closed')
-        interface = False
-
 import re
+import json
+
 class Student:
-    def __init__(self,name,marks):
+    def __init__(self, name, scores):
         self.name = name
-        self.marks = marks
-        self.Grade = {}
+        self.scores = scores
 
-    def calculate_grades(self):
-        for subject in self.marks():
-            if marks >=90:
-                self.Grade[subject] = 'A'
-            elif marks >=80:
-                self.Grade[subject] = 'B'
-                if marks >= 70:
-                    self.Grade[subject] = 'C'
-                elif marks >= 60:
-                    self.Grade[subject] = 'D'
-                elif marks >= 50:
-                    self.Grade[subject] = 'E'
-                else:
-                    self.Grade[subject] = 'Fail'
+    def calculate_grade(self, subject, grading_scale):
+        if subject not in self.scores:
+            return "N/A"  # Not Applicable
+        score = self.scores[subject]
+        for grade, threshold in grading_scale.items():
+            if score >= threshold:
+                return grade
+        return "Fail"
+
+    def to_dict(self):
+        return {"name": self.name, "scores": self.scores}
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["name"], data["scores"])
 
 
-class GradeCalculator:
-    def __init__(self):
-        self.students = []
-    def add_student(self,name,marks):
-        self.students.append(Student(name,marks))
-    def calculate_grades(self):
-        for student in self.students:
-            student.calculate_grades()
-    def print_grades(self):
-        for student in self.students:
-            print(student.name)
-            for subject,grade in student.Grade.items():
-                print(subject,grade)
+def validate_score(score):
+    return re.match(r"^\d+$", str(score)) and 0 <= int(score) <= 100 #only accepts numbers between 0 and 100
+
+
+def save_grades(students, filename="grades.json"):
+    data = [student.to_dict() for student in students]
+    with open(filename, "w") as f:
+        json.dump(data, f, indent=4)
+
+def load_grades(filename="grades.json"):
+    try:
+        with open(filename, "r") as f:
+            data = json.load(f)
+            return [Student.from_dict(student_data) for student_data in data]
+    except FileNotFoundError:
+        return []
+
+def main():
+    grading_scale = {"A": 90, "B": 80, "C": 70, "D": 60, "E": 50}
+    students = load_grades()
+
+    while True:
+        print("\nGrade Calculator")
+        print("1. Add Student")
+        print("2. View Grades")
+        print("3. Save Grades")
+        print("4. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            name = input("Enter student name: ")
+            scores = {}
+            while True:
+                subject = input("Enter subject (or type 'done'): ")
+                if subject.lower() == "done":
+                    break
+                while True:
+                    score_str = input(f"Enter {subject} score: ")
+                    if validate_score(score_str):
+                        scores[subject] = int(score_str)
+                        break
+                    else:
+                        print("Invalid score. Please enter a number between 0 and 100.")
+
+            students.append(Student(name, scores))
+
+        elif choice == "2":
+            if not students:
+                print("No students added yet.")
+            else:
+                print("\nStudent Grades:")
+                for student in students:
+                    print(f"\nName: {student.name}")
+                    for subject in student.scores:
+                        grade = student.calculate_grade(subject, grading_scale)
+                        print(f"{subject}: Score: {student.scores[subject]}, Grade: {grade}")
+
+        elif choice == "3":
+            save_grades(students)
+            print("Grades saved to grades.json")
+
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
+
+
 
 
 
